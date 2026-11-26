@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CardDisclaimer } from "@/components/card-disclaimer";
 import { ShareBar } from "@/components/share-bar";
 import { CHANNELS, CHANNEL_LABEL, PREFECTURES, PREFS, PRODUCTS, PRODUCT_LABEL, calculateDiscount, todayJst, type Channel, type Prefecture, type Product } from "@/lib/discount";
+import { isGithubPages, pagesSiteUrl } from "@/lib/hosting";
 import { EXAMPLE_SHARED, PUBLIC_URL, resultPath, yen, type Shared } from "@/lib/share";
 
 const field = "mt-2 w-full rounded-xl border border-line bg-black/40 px-3 py-2 text-sm text-foreground focus:border-amber";
@@ -38,7 +39,7 @@ export function Calculator({ initial }: { initial?: Shared }) {
       return null;
     }
   })();
-  const shareUrl = `${PUBLIC_URL}${resultPath(shared)}`;
+  const shareUrl = isGithubPages ? `${pagesSiteUrl(PUBLIC_URL)}/` : `${PUBLIC_URL}${resultPath(shared)}`;
   const rule = PREFS[prefecture];
   const v = result ? VERDICT[result.eligibility.verdict] : null;
 
@@ -189,12 +190,18 @@ export function Calculator({ initial }: { initial?: Shared }) {
                 ))}
               </ul>
               <div className="mt-6 border-t border-line pt-4" data-testid="share-result">
-                <p className="text-xs text-muted">Share this result. The link carries only these numbers; nothing is stored.</p>
+                <p className="text-xs text-muted">
+                  {isGithubPages
+                    ? "Share the calculator. A link to this exact result returns when hosting is back."
+                    : "Share this result. The link carries only these numbers; nothing is stored."}
+                </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <ShareBar url={shareUrl} text={`Kyushu travel discount (九州ふっこう応援割) in ${rule.en}: ${yen(result.totalPriceJPY)} → ${yen(result.payJPY)} (−${yen(result.discountJPY)}). Free calculator:`} />
-                  <a href={resultPath(shared)} className="text-sm text-muted underline underline-offset-2 hover:text-foreground">
-                    Open result page
-                  </a>
+                  {isGithubPages ? null : (
+                    <a href={resultPath(shared)} className="text-sm text-muted underline underline-offset-2 hover:text-foreground">
+                      Open result page
+                    </a>
+                  )}
                 </div>
               </div>
             </>
