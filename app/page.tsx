@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Calculator } from "@/components/calculator";
 import { FaqSection, type FaqItem } from "@/components/faq-section";
 import { CHANNELS, CHANNEL_LABEL, PREFECTURES, PREFS, RULES_AS_OF, SOURCES, todayJst, upcomingOpenings } from "@/lib/discount";
+import { API_PAUSED_NOTE, isGithubPages, pagesSiteUrl, withBasePath } from "@/lib/hosting";
 import { EXAMPLE_SHARED, PUBLIC_URL, resultPath, type Shared } from "@/lib/share";
 
 export const revalidate = 3600;
@@ -23,7 +24,7 @@ const webAppLd = {
   "@type": "WebApplication",
   name: "Kyushu Travel Discount Calculator",
   alternateName: ["九州ふっこう応援割 計算", "Kyushu Fukko Ouenwari calculator"],
-  url: PUBLIC_URL,
+  url: isGithubPages ? pagesSiteUrl(PUBLIC_URL) : PUBLIC_URL,
   applicationCategory: "TravelApplication",
   operatingSystem: "Any",
   inLanguage: ["en", "ja"],
@@ -80,7 +81,9 @@ const faq: FaqItem[] = [
   },
   {
     q: "Is there a free Kyushu travel discount API for AI agents?",
-    a: `Yes. Free, no key, CORS open: GET ${PUBLIC_URL}/api/discount?prefecture=kumamoto&product=lodging&nights=2&totalPriceJPY=60000&travelers=2&checkIn=2026-11-20 returns the discount, price to pay, cap, eligibility verdict and next sales opening. Full rules and upcoming openings at ${PUBLIC_URL}/api/rules, OpenAPI at ${PUBLIC_URL}/openapi.json, and the kyushu_travel_discount_check tool on https://free-agent-tools.vercel.app/mcp.`,
+    a: isGithubPages
+      ? API_PAUSED_NOTE
+      : `Yes. Free, no key, CORS open: GET ${PUBLIC_URL}/api/discount?prefecture=kumamoto&product=lodging&nights=2&totalPriceJPY=60000&travelers=2&checkIn=2026-11-20 returns the discount, price to pay, cap, eligibility verdict and next sales opening. Full rules and upcoming openings at ${PUBLIC_URL}/api/rules, OpenAPI at ${PUBLIC_URL}/openapi.json, and the kyushu_travel_discount_check tool on https://free-agent-tools.vercel.app/mcp.`,
   },
 ];
 
@@ -200,7 +203,7 @@ export default function HomePage() {
         </div>
         <p className="mt-3 text-sm text-muted">
           Caps per person per trip: ¥20,000 accommodation only or 1-night package · ¥30,000 package of 2+ nights · ¥35,000 tour with stays in 2+ prefectures. Example:{" "}
-          <a className="underline underline-offset-2 hover:text-foreground" href={resultPath(EXAMPLE_SHARED)}>
+          <a className="underline underline-offset-2 hover:text-foreground" href={isGithubPages ? withBasePath("/") : resultPath(EXAMPLE_SHARED)}>
             2 people, 2 nights in Kumamoto for ¥60,000 → pay ¥24,000
           </a>
           .
@@ -209,17 +212,27 @@ export default function HomePage() {
 
       <section className="mt-16 max-w-3xl">
         <h2 className="font-display text-3xl tracking-tight sm:text-4xl">Agent-callable JSON API</h2>
-        <p className="mt-4 text-sm leading-relaxed text-muted sm:text-base">
-          Free, no key, CORS open.{" "}
-          <code className="rounded bg-panel px-1.5 py-0.5 font-mono text-xs text-foreground">GET {PUBLIC_URL}/api/discount?prefecture=kumamoto&amp;nights=2&amp;totalPriceJPY=60000&amp;travelers=2&amp;checkIn=2026-11-20</code> or POST JSON. Also{" "}
-          <a className="underline underline-offset-2 hover:text-foreground" href="/api/rules">/api/rules</a>,{" "}
-          <a className="underline underline-offset-2 hover:text-foreground" href="/openapi.json">/openapi.json</a>,{" "}
-          <a className="underline underline-offset-2 hover:text-foreground" href="/llms.txt">/llms.txt</a>, and the MCP tool on{" "}
-          <a className="underline underline-offset-2 hover:text-foreground" href="https://free-agent-tools.vercel.app/" target="_blank" rel="noopener noreferrer">
-            free-agent-tools
-          </a>
-          .
-        </p>
+        {isGithubPages ? (
+          <p className="mt-4 text-sm leading-relaxed text-muted sm:text-base">
+            {API_PAUSED_NOTE}{" "}
+            <a className="underline underline-offset-2 hover:text-foreground" href={withBasePath("/llms.txt")}>
+              llms.txt
+            </a>{" "}
+            describes the calculator and the API contract.
+          </p>
+        ) : (
+          <p className="mt-4 text-sm leading-relaxed text-muted sm:text-base">
+            Free, no key, CORS open.{" "}
+            <code className="rounded bg-panel px-1.5 py-0.5 font-mono text-xs text-foreground">GET {PUBLIC_URL}/api/discount?prefecture=kumamoto&amp;nights=2&amp;totalPriceJPY=60000&amp;travelers=2&amp;checkIn=2026-11-20</code> or POST JSON. Also{" "}
+            <a className="underline underline-offset-2 hover:text-foreground" href="/api/rules">/api/rules</a>,{" "}
+            <a className="underline underline-offset-2 hover:text-foreground" href="/openapi.json">/openapi.json</a>,{" "}
+            <a className="underline underline-offset-2 hover:text-foreground" href="/llms.txt">/llms.txt</a>, and the MCP tool on{" "}
+            <a className="underline underline-offset-2 hover:text-foreground" href="https://free-agent-tools.vercel.app/" target="_blank" rel="noopener noreferrer">
+              free-agent-tools
+            </a>
+            .
+          </p>
+        )}
         <p className="mt-3 text-xs text-muted">
           Official sources:{" "}
           {SOURCES.slice(0, 3).map((s, i) => (

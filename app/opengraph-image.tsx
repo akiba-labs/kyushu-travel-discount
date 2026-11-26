@@ -1,5 +1,7 @@
 import { ImageResponse } from "next/og";
 
+export const dynamic = "force-static";
+
 export const alt = "Kyushu Travel Discount Calculator (九州ふっこう応援割 2026)";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
